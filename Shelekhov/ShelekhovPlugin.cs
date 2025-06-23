@@ -4,6 +4,7 @@ using PhoneApp.Domain.DTO;
 using PhoneApp.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -15,16 +16,11 @@ namespace Shelekhov
         private static readonly HttpClient httpClient = new HttpClient();
         private static readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        public IEnumerable<DataTransferObject> Run(IEnumerable<DataTransferObject> input)
+        public IEnumerable<DataTransferObject> Run(IEnumerable<DataTransferObject> args)
         {
             System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 
-            var result = new List<DataTransferObject>();
-
-            foreach (var item in input)
-            {
-                result.Add(item);
-            }
+            var employeesList = args.Cast<EmployeesDTO>().ToList();
 
             try
             {
@@ -41,7 +37,7 @@ namespace Shelekhov
                         Name = $"{user.FirstName} {user.LastName}"
                     };
                     dto.AddPhone(user.Phone);
-                    result.Add(dto);
+                    employeesList.Add(dto);
                     logger.Info($"ShelekhovPlugin: Adding a user {dto.Name} from phones {dto.Phone}");
                 }
 
@@ -52,7 +48,7 @@ namespace Shelekhov
                 logger.Error($"ShelekhovPlugin: Error when uploading users: {ex.Message}");
             }
 
-            return result;
+            return employeesList;
         }
 
         private async Task<List<User>> LoadUsersFromApiAsync()
